@@ -3,9 +3,11 @@
 
 PostToolUse (Write|Edit|MultiEdit on a .md file): lint the file with evals/ste_lint.py
 and keep only the hits on the lines that the tool wrote. Old text that the
-edit did not touch is not reported. When hits remain, print the offending
-text and line number for each hit (capped at MAX_HOOK_HITS) to stderr and
-exit 2 so the model sees it. Exit 2 on PostToolUse is advisory: the tool already ran. Agent-internal
+edit did not touch is not reported. When hits remain, send the offending
+text and line number for each hit (capped at MAX_HOOK_HITS) to the model as
+a warning: hookSpecificOutput.additionalContext on stdout, with exit 0. An
+exit 2 would show the hits as a blocking error, although the tool already
+ran. Agent-internal
 Markdown, such as memory files under the Claude configuration directory, is
 skipped. The writing rules do not govern it, and a summary of its
 violations only spends tokens. Set SIMPLE_ENGLISH_LINT_EXCLUDE to skip more
@@ -134,9 +136,9 @@ def post_tool_use(event):
         lines.append(f"  line {h['line']}, {h['category']}: {h['text']}")
     if len(detail) > MAX_HOOK_HITS:
         lines.append(f"  and {len(detail) - MAX_HOOK_HITS} more hit(s).")
-    lines.append("Fix these hits in the file you just wrote, then continue.")
-    sys.stderr.write("\n".join(lines) + "\n")
-    return 2
+    lines.append("Fix these hits in the text you wrote.")
+    print(json.dumps({"hookSpecificOutput": {"hookEventName": "PostToolUse", "additionalContext": "\n".join(lines)}}))
+    return 0
 
 
 def stop(event):

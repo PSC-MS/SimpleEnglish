@@ -2,6 +2,11 @@
 
 Each entry names the version, the date, and the measured effect where one exists.
 
+## 2.1.6, 2026-11-23
+
+- Changed (PSC-MS fork): the PostToolUse hook sends its hits as a warning
+  (additionalContext, exit 0), not as a blocking error (stderr, exit 2).
+
 ## 2.1.5, 2026-11-23
 
 - Fixed (PSC-MS fork): the PostToolUse hook also runs after MultiEdit. The
