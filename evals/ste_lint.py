@@ -66,7 +66,7 @@ LIMITS = {"procedural": 20, "descriptive": 25}
 
 
 def strip_code(text):
-    text = re.sub(r"```.*?```", " ", text, flags=re.S)
+    text = re.sub(r"```.*?```", lambda m: " " + "\n" * m.group(0).count("\n"), text, flags=re.S)  # keep the newlines, so line numbers stay true
     text = re.sub(r"`[^`\n]+`", " CODESPAN ", text)  # one word per Rule 8.6
     text = re.sub(r"^#+\s.*$", " ", text, flags=re.M)  # headings exempt (titles, 8.6)
     text = re.sub(r"https?://\S+", " URL ", text)

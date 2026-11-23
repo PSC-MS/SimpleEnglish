@@ -86,6 +86,56 @@ def test_post_tool_use_matches_a_glob_through_a_symlinked_directory():
         assert run(post(path))[0] == 2
         assert run(post(path), env={"SIMPLE_ENGLISH_LINT_EXCLUDE": f"{d}/notes/*"})[0] == 0
 
+def edit(path, new_string, tool_name="Edit", **tool_input):
+    return {"hook_event_name": "PostToolUse", "tool_name": tool_name,
+            "tool_input": {"file_path": path, "old_string": "x", "new_string": new_string, **tool_input}}
+
+def test_post_tool_use_ignores_old_violations_outside_a_clean_edit():
+    with tempfile.TemporaryDirectory() as d:
+        path = pathlib.Path(d, "notes.md")
+        path.write_text(SLOP + "Run the tests.\n", encoding="utf-8")
+        code, out, err = run(edit(str(path), "Run the tests."))
+    assert code == 0, (code, err)
+
+def test_post_tool_use_reports_only_the_lines_an_edit_wrote():
+    with tempfile.TemporaryDirectory() as d:
+        path = pathlib.Path(d, "notes.md")
+        path.write_text(SLOP + "\nIt has been done.\n", encoding="utf-8")
+        code, out, err = run(edit(str(path), "It has been done."))
+    assert code == 2, (code, err)
+    assert "line 3, perfect_tense: has been" in err, err
+    assert "should" not in err and "line 1" not in err, err
+
+def test_post_tool_use_reports_every_place_a_replace_all_wrote():
+    with tempfile.TemporaryDirectory() as d:
+        path = pathlib.Path(d, "notes.md")
+        path.write_text("You should run it.\n\nRun the tests.\n\nYou should run it.\n", encoding="utf-8")
+        code, out, err = run(edit(str(path), "You should run it.", replace_all=True))
+    assert "line 1, banned_modal" in err and "line 5, banned_modal" in err, err
+
+def test_post_tool_use_checks_each_multiedit_entry():
+    with tempfile.TemporaryDirectory() as d:
+        path = pathlib.Path(d, "notes.md")
+        path.write_text("Run the tests.\n\n" + SLOP + "\nYou could restart it.\n", encoding="utf-8")
+        event = {"hook_event_name": "PostToolUse", "tool_name": "MultiEdit",
+                 "tool_input": {"file_path": str(path), "edits": [
+                     {"old_string": "a", "new_string": "Run the tests."},
+                     {"old_string": "b", "new_string": "You could restart it."}]}}
+        code, out, err = run(event)
+    assert code == 2 and "line 5, banned_modal: could" in err and "should" not in err, err
+
+def test_post_tool_use_passes_a_deletion():
+    with tempfile.TemporaryDirectory() as d:
+        code, out, err = run(edit(write_slop(d), ""))
+    assert code == 0, (code, err)
+
+def test_post_tool_use_counts_lines_after_a_code_fence():
+    with tempfile.TemporaryDirectory() as d:
+        path = pathlib.Path(d, "notes.md")
+        path.write_text("Run this.\n\n```\nmake\nmake test\n```\n\nYou should stop.\n", encoding="utf-8")
+        code, out, err = run(edit(str(path), "You should stop."))
+    assert "line 8, banned_modal: should" in err, err
+
 def test_stop_flags_slop_reply_and_never_blocks():
     long = "Great question! " + "This is a robust sentence. " * 7 + "I hope this helps!"
     code, out, err = run({"hook_event_name": "Stop", "last_assistant_message": long})

@@ -2,6 +2,13 @@
 
 Each entry names the version, the date, and the measured effect where one exists.
 
+## 2.1.4, 2026-11-23
+
+- Changed (PSC-MS fork): the PostToolUse hook reports only the hits on the
+  lines that the Write, Edit, or MultiEdit wrote. Old text is not reported.
+- Fixed (PSC-MS fork): a fenced code block no longer moves the line numbers
+  of the hits after it.
+
 ## 2.1.3, 2026-11-23
 
 - Changed (PSC-MS fork): the spelling rule. Use British spelling, not

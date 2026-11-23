@@ -2,9 +2,10 @@
 """Advisory writing checks for Claude Code hooks. Never blocks.
 
 PostToolUse (Write|Edit on a .md file): lint the file with evals/ste_lint.py
-and, when it has violations, print the offending text and line number for
-each hit (capped at MAX_HOOK_HITS) to stderr and exit 2 so the model sees
-it. Exit 2 on PostToolUse is advisory: the tool already ran. Agent-internal
+and keep only the hits on the lines that the tool wrote. Old text that the
+edit did not touch is not reported. When hits remain, print the offending
+text and line number for each hit (capped at MAX_HOOK_HITS) to stderr and
+exit 2 so the model sees it. Exit 2 on PostToolUse is advisory: the tool already ran. Agent-internal
 Markdown, such as memory files under the Claude configuration directory, is
 skipped. The writing rules do not govern it, and a summary of its
 violations only spends tokens. Set SIMPLE_ENGLISH_LINT_EXCLUDE to skip more
@@ -72,6 +73,42 @@ def excluded(target):
     return False
 
 
+def written_texts(tool_input):
+    """The text that the tool wrote, or None when the payload does not carry it.
+
+    Write carries `content`, Edit carries `new_string`, and MultiEdit carries
+    `new_string` in each entry of `edits`.
+    """
+    if isinstance(tool_input.get("edits"), list):
+        return [e.get("new_string") or "" for e in tool_input["edits"]]
+    for key in ("new_string", "content"):
+        if isinstance(tool_input.get(key), str):
+            return [tool_input[key]]
+    return None
+
+
+def written_lines(text, tool_input):
+    """The 1-based line numbers in text that hold the text the tool wrote.
+
+    None means "every line": the payload does not say what the tool wrote.
+    An Edit with replace_all can write the same text in many places, so every
+    occurrence counts. A deletion writes no text and returns an empty set.
+    """
+    written = written_texts(tool_input)
+    if written is None:
+        return None
+    found = set()
+    for fragment in written:
+        if not fragment.strip():
+            continue
+        start = text.find(fragment)
+        while start != -1:
+            first = text.count("\n", 0, start) + 1
+            found.update(range(first, first + fragment.count("\n") + 1))
+            start = text.find(fragment, start + len(fragment))
+    return found
+
+
 def post_tool_use(event):
     path = (event.get("tool_input") or {}).get("file_path") or ""
     if not path.endswith(".md"):
@@ -86,11 +123,13 @@ def post_tool_use(event):
         text = target.read_text(encoding="utf-8")
     except OSError:
         return 0
-    report = lint.lint(text, "descriptive")
-    if not report["violations_total"]:
-        return 0
     detail = lint.lint_detail(text, "descriptive")
-    lines = [f"simple-english: {target.name} has {report['violations_total']} STE violations."]
+    lines_written = written_lines(text, event.get("tool_input") or {})
+    if lines_written is not None:
+        detail = [h for h in detail if h["line"] in lines_written]
+    if not detail:
+        return 0
+    lines = [f"simple-english: the text you wrote in {target.name} has {len(detail)} STE violations."]
     for h in detail[:MAX_HOOK_HITS]:
         lines.append(f"  line {h['line']}, {h['category']}: {h['text']}")
     if len(detail) > MAX_HOOK_HITS:
