@@ -17,7 +17,8 @@ Read this file for CHECK mode, for Strict mode, or when a rule number is in ques
 | 1.11 | One item, one name. Do not call it "config" here and "settings" there. |
 | 1.12 | You can use domain verbs as technical verbs ("deploy", "compile", "merge"). The standard names computer verbs as legal: click, type, copy, paste, delete, save, install, download, update, and more. When a common verb does the same job, prefer it: "find" instead of "detect". |
 | 1.13 | Do not use technical verbs as nouns. |
-| 1.14 | Use American English spelling. |
+| 1.14 | Use British English spelling. |
+| 1.15 | Write dates in ISO 8601 form: 2026-09-01. |
 
 In Plain mode, rules 1.5, 1.8, and 1.12 make your domain vocabulary legal.
 

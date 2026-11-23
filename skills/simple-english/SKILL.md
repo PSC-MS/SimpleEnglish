@@ -16,7 +16,7 @@ description: |
 license: MIT
 compatibility: claude-code cursor codex gemini-cli opencode
 metadata:
-  version: "2.1.2"
+  version: "2.1.3"
   standard: ASD-STE100 Issue 9 (2025-01-15)
 ---
 
@@ -41,7 +41,7 @@ When asked to write or rewrite documentation, apply these rules to the prose:
 11. Use formatting only where it carries structure. No bold lead-ins, no bold as emphasis, no emoji, no heading over two sentences. A vertical list is for three or more parallel items or steps: colon on the lead-in, uppercase start, one instruction per item.
 12. Warnings: command or condition first, then the risk. "Do not run this against production. The command deletes rows."
 
-Use American spelling. `references/word-swaps.md` maps the overused words to plain ones. For an error message, a runbook, an incident report, release notes, a commit message, or UI copy, read `references/use-cases.md` first. It names the mode and the pattern for each.
+Use British spelling. Write dates in ISO 8601 form (2026-09-01). `references/word-swaps.md` maps the overused words to plain ones. For an error message, a runbook, an incident report, release notes, a commit message, or UI copy, read `references/use-cases.md` first. It names the mode and the pattern for each.
 
 Before (AI output):
 

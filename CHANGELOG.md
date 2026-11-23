@@ -2,6 +2,12 @@
 
 Each entry names the version, the date, and the measured effect where one exists.
 
+## 2.1.3, 2026-11-23
+
+- Changed (PSC-MS fork): the spelling rule. Use British spelling, not
+  American spelling.
+- Added (PSC-MS fork): rule 1.15. Write dates in ISO 8601 form: 2026-09-01.
+
 ## 2.1.2, 2026-11-10
 
 - Changed: the reply rule. A reply is prose by default. A label line, a list,
