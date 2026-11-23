@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Advisory writing checks for Claude Code hooks. Never blocks.
 
-PostToolUse (Write|Edit on a .md file): lint the file with evals/ste_lint.py
+PostToolUse (Write|Edit|MultiEdit on a .md file): lint the file with evals/ste_lint.py
 and keep only the hits on the lines that the tool wrote. Old text that the
 edit did not touch is not reported. When hits remain, print the offending
 text and line number for each hit (capped at MAX_HOOK_HITS) to stderr and

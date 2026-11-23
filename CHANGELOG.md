@@ -2,6 +2,11 @@
 
 Each entry names the version, the date, and the measured effect where one exists.
 
+## 2.1.5, 2026-11-23
+
+- Fixed (PSC-MS fork): the PostToolUse hook also runs after MultiEdit. The
+  matcher was Write|Edit, so the hook never saw a MultiEdit.
+
 ## 2.1.4, 2026-11-23
 
 - Changed (PSC-MS fork): the PostToolUse hook reports only the hits on the
